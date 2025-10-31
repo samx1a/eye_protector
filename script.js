@@ -4,13 +4,8 @@
 
 // TODO: variable to track current mode: "work" or "break"
 let mode = "work"; // can be work or braek
-let timeLeft = 1200; 
+let timeLeft; 
 let timerId; 
-// TODO: variable to store the interval ID returned by setInterval()
-// let timerId = ...
-timerId = setInterval(() => {
-    timeLeft -= 1
-}, 1000); 
 
 // TODO: variable to track if the timer is currently running or not
 // let isRunning = ...
@@ -33,9 +28,9 @@ function formatTime(totalSeconds) {
     let seconds = totalSeconds % 60; 
     let res;
     
-    if (seconds < 10): // only 1 digit so need to add 0 to front
+    if (seconds < 10) { // only 1 digit so need to add 0 to front
         seconds = "0" + seconds; 
-    
+    }
     return `${minutes}:${seconds}`; 
 }
 
@@ -51,6 +46,7 @@ function formatTime(totalSeconds) {
 //   with just the raw number of seconds left (timeLeft)
 function updateCountdownDisplay() {
     if (mode === "work") {
+        // get curr time, format time, display that time
         const workEl = document.getElementById("work-timer"); 
         const formatted = formatTime(timeLeft);
         workEl.textContent = formatted; 
@@ -113,18 +109,19 @@ function hideBreakPopup() {
 // - hideBreakPopup()
 // - restart the timer loop
 function switchMode() {
-    // TODO:
     if (mode === "work") {
         mode = "break";
         timeLeft = BREAK_DURATION; 
-        showBreakPopup()
+        showBreakPopup();
         // how to restart timer 
     } else {
         mode = "work"; 
         timeLeft = WORK_DURATION; 
-        hideBreakPopup()
+        hideBreakPopup();
     }
+    startTimerLoop();
 }
+
 
 
 // =========================
@@ -132,8 +129,8 @@ function switchMode() {
 // =========================
 
 // This function should:
-// 1. clear any existing interval (clearInterval(...))
-// 2. immediately update the screen so UI matches current timeLeft
+// 1. clear any existing interval (clearInterval(...)) check 
+// 2. immediately update the screen so UI matches current timeLeft check 
 // 3. start a new setInterval that runs every 1000ms (1s):
 //    - subtract 1 from timeLeft
 //    - update the screen
@@ -143,16 +140,20 @@ function switchMode() {
 function startTimerLoop() {
     // TODO:
     // clear old interval
-    // updateCountdownDisplay() once at the start
-    // create new interval:
-    //   inside it:
-    //     timeLeft -= 1
-    //     updateCountdownDisplay()
-    //     if timeLeft <= 0:
-    //         clearInterval(...)
-    //         switchMode()
-    //
-    // store the interval id in timerId
+    clearInterval(timerId); 
+    updateCountdownDisplay();
+
+    timerId = setInterval(() => {
+        timeLeft -= 1;
+        updateCountdownDisplay();
+        
+        if (timeLeft <= 0) {
+            clearInterval(timerId); 
+            switchMode(); 
+        }
+
+
+    }, 1000); 
 }
 
 
@@ -175,18 +176,22 @@ function startTimerLoop() {
 // - change button textContent to "Start"
 // - clearInterval(timerId) so it stops counting down
 function toggleStartStop() {
-    // TODO:
-    // get the button element by id="toggle-btn"
-    // if we're not running:
-    //   set isRunning
-    //   set button text
-    //   set mode and timeLeft
-    //   hideBreakPopup()
-    //   startTimerLoop()
-    // else (we are running):
-    //   set isRunning false
-    //   set button text
-    //   clearInterval(timerId)
+    let btn = document.getElementById("toggle-btn"); 
+
+    if (!isRunning) {
+        isRunning = true; 
+        btn.textContent = "stop"; 
+
+        mode = "work";
+        timeLeft = WORK_DURATION; 
+        hideBreakPopup();
+
+        startTimerLoop();
+    } else {
+        isRunning = false; 
+        btn.textContent = "start"; 
+        clearInterval(timerId); 
+    }
 }
 
 
@@ -203,13 +208,19 @@ function toggleStartStop() {
 // - makes sure break popup is hidden
 // - calls updateCountdownDisplay() once so UI shows correct starting time
 window.addEventListener("DOMContentLoaded", () => {
-    // TODO:
-    // 1. get the button element
-    // 2. addEventListener("click", toggleStartStop)
-    // 3. set isRunning = false
-    // 4. set button text to "Start"
-    // 5. set mode = "work"
-    // 6. set timeLeft = WORK_DURATION
-    // 7. hideBreakPopup()
-    // 8. updateCountdownDisplay()
+    const btn = document.getElementById("toggle-btn"); 
+
+    btn.addEventListener("click", toggleStartStop); 
+
+    isRunning = false; 
+
+    btn.textContent = "start"; 
+
+    mode = "work"; 
+
+    timeLeft = WORK_DURATION; 
+
+    hideBreakPopup(); 
+
+    updateCountdownDisplay(); 
 });
