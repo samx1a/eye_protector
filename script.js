@@ -75,18 +75,24 @@ function updateCountdownDisplay() {
 // - work-container should be hidden
 
 function showBreakPopup() {
-    // TODO:
     // get break-popup element
-    // get work-container element
-    // set break-popup.style.display = "block"
-    // set work-container.style.display = "none"
+    const breakPopup = document.getElementById("break-popup"); 
+    const workContainer = document.getElementById("work-container"); 
+
+    // show break popup
+    breakPopup.style.display = "block"; 
+
+    // hide work container
+    workContainer.style.display = "none"; 
 }
 
 function hideBreakPopup() {
-    // TODO:
-    // reverse of showBreakPopup
-    // break-popup => "none"
-    // work-container => "block"
+    const breakPopup = document.getElementById("break-popup"); 
+    const workContainer = document.getElementById("work-container"); 
+    
+    // want to do opposite here of above
+    breakPopup.style.display = "none"; 
+    workContainer.style.display = "block"
 }
 
 
@@ -108,11 +114,16 @@ function hideBreakPopup() {
 // - restart the timer loop
 function switchMode() {
     // TODO:
-    // use if (mode === "work") { ... } else { ... }
-    // update mode
-    // reset timeLeft
-    // show/hide correct popup
-    // call startTimerLoop()
+    if (mode === "work") {
+        mode = "break";
+        timeLeft = BREAK_DURATION; 
+        showBreakPopup()
+        // how to restart timer 
+    } else {
+        mode = "work"; 
+        timeLeft = WORK_DURATION; 
+        hideBreakPopup()
+    }
 }
 
 
