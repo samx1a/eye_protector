@@ -1,0 +1,10 @@
+{
+    "name": "Eye Protector", 
+    "description": "reminds user to take break every 20 min",
+    "version": "1.0",
+    "manifest_version": 3, 
+    "action": {
+        "default_popup": "index.html", 
+        "default_icon": "eye_protect.png"
+    }
+}
