@@ -1,0 +1,52 @@
+/* TODO: style the body so it's not ugly
+   - give it a light background
+   - center text
+   - small padding so it doesn't hug edges
+*/
+body {
+    /* ... */
+}
+
+/* TODO: style .card
+   - white background
+   - rounded corners
+   - some padding
+   - maybe a light border or box-shadow
+*/
+.card {
+    /* ... */
+}
+
+/* TODO: style .title
+   - slightly bigger or bolder text
+*/
+.title {
+    /* ... */
+}
+
+/* TODO: style .time-display
+   - make this big and obvious (like 24px+ font)
+*/
+.time-display {
+    /* ... */
+}
+
+/* TODO: style .hint
+   - smaller, softer color
+*/
+.hint {
+    /* ... */
+}
+
+/* TODO: style .control-btn
+   - make it look like a button: background color, padding, border-radius
+   - make it full width so it's easy to tap
+*/
+.control-btn {
+    /* ... */
+}
+
+/* OPTIONAL: .bear image style if you add the bear */
+.bear {
+    /* width, height, maybe margin-top */
+}

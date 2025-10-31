@@ -3,15 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Eye Protector</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="timer"></div>
-    <h4>Rest your eyes >_&lt;</h4>
-    <img src="bear.png">
-    <button onclick="on()">click me to turn on / off</button>
 
-    <script src="script.js"></script>
+    <!-- WORK MODE UI -->
+    <div id="work-container" class="card">
+        <h2 class="title">Next break in:</h2>
+
+        <!-- TODO: this element should display the work countdown in MM:SS -->
+        <div id="work-timer" class="time-display">20:00</div>
+
+        <p class="hint">Keep focusing 👀</p>
+    </div>
+
+    <!-- BREAK MODE UI (starts hidden) -->
+    <div id="break-popup" class="card" style="display: none;">
+        <h2 class="title">Rest your eyes >_<</h2>
+        <p class="hint">Look away from the screen</p>
+
+        <!-- TODO: this element should display the break countdown (like 20, 19, 18...) -->
+        <div id="break-timer" class="time-display">20</div>
+
+        <!-- OPTIONAL IMAGE -->
+        <!-- <img src="bear.png" class="bear" alt="bear telling you to rest"> -->
+    </div>
+
+    <!-- START / STOP BUTTON -->
+    <button id="toggle-btn" class="control-btn">Start</button>
+
+    <!-- TODO: include your script file here -->
+    <!-- <script src="..."></script> -->
 </body>
 </html>
