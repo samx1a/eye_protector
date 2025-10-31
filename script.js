@@ -3,29 +3,25 @@
 // =========================
 
 // TODO: variable to track current mode: "work" or "break"
-// let mode = ...
-
-// TODO: variable to track how many seconds are left in the current phase
-// let timeLeft = ...
-
+let mode = "work"; // can be work or braek
+let timeLeft = 1200; 
+let timerId; 
 // TODO: variable to store the interval ID returned by setInterval()
 // let timerId = ...
+timerId = setInterval(() => {
+    timeLeft -= 1
+}, 1000); 
 
 // TODO: variable to track if the timer is currently running or not
 // let isRunning = ...
+let isRunning = false; 
 
 
 // =========================
 // CONSTANTS
 // =========================
-
-// TODO: how long is a work session, in seconds?
-// For testing, make it small like 20 seconds.
-// Later you can make it 20 * 60 for 20 minutes.
-// const WORK_DURATION = ...
-
-// TODO: how long is a break session, in seconds?
-// const BREAK_DURATION = ...
+const WORK_DURATION = 20 * 60; 
+const BREAK_DURATION = 20; 
 
 
 // =========================
@@ -54,11 +50,15 @@ function formatTime(totalSeconds) {
 // - If mode is "break": update the element with id="break-timer"
 //   with just the raw number of seconds left (timeLeft)
 function updateCountdownDisplay() {
-    // TODO:
-    // 1. check current mode
-    // 2. get the correct DOM element with document.getElementById(...)
-    // 3. set its .textContent to the right thing
-    //    (formatTime(...) vs just timeLeft)
+    if (mode === "work") {
+        const workEl = document.getElementById("work-timer"); 
+        const formatted = formatTime(timeLeft);
+        workEl.textContent = formatted; 
+    } else {
+        // mode is equal to break
+        const breakEl = document.getElementById("break-timer"); 
+        breakEl.textContent = timeLeft;
+    }
 }
 
 
