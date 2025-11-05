@@ -1,52 +1,166 @@
-/* TODO: style the body so it's not ugly
-   - give it a light background
-   - center text
-   - small padding so it doesn't hug edges
-*/
+/* =========================
+   OVERALL LAYOUT / BACKGROUND
+   ========================= */
 body {
-    /* ... */
+  margin: 0;
+  padding: 0;
+  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* soft green like Forest app background */
+  background: linear-gradient(#e8f5e1, #d4edc9);
+
+  color: #2e2e2e;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  height: 320px;   /* good size for Chrome extension popups */
+  width: 260px;
 }
 
-/* TODO: style .card
-   - white background
-   - rounded corners
-   - some padding
-   - maybe a light border or box-shadow
-*/
+/* remove text selection highlight (feels more app-like) */
+body * {
+  user-select: none;
+}
+
+/* =========================
+   CARD STYLING
+   ========================= */
+/* shared styles for both work-container and break-popup */
 .card {
-    /* ... */
+  background: #ffffff;
+  border-radius: 18px;
+
+  /* soft "floating card" shadow */
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.07),
+    0 1px 2px rgba(0, 0, 0, 0.05);
+
+  padding: 20px 16px;
+  text-align: center;
+
+  width: 90%;
+  max-width: 220px;
+  min-height: 150px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-/* TODO: style .title
-   - slightly bigger or bolder text
-*/
+/* =========================
+   TEXT + TIMER
+   ========================= */
 .title {
-    /* ... */
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #49624b; /* muted forest green/brown */
+  margin: 0 0 8px 0;
 }
 
-/* TODO: style .time-display
-   - make this big and obvious (like 24px+ font)
-*/
+/* main time display */
 .time-display {
-    /* ... */
+  font-size: 2.6rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.05em;
+
+  /* deep earthy green for work mode by default */
+  color: #3a5f2a;
+  margin-bottom: 6px;
 }
 
-/* TODO: style .hint
-   - smaller, softer color
-*/
 .hint {
-    /* ... */
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #7a8b73;
+  margin-top: 4px;
 }
 
-/* TODO: style .control-btn
-   - make it look like a button: background color, padding, border-radius
-   - make it full width so it's easy to tap
-*/
+/* =========================
+   BREAK POPUP COLOR VARIANT
+   ========================= */
+
+/* break mode should feel like "gentle stop / relax", more warm than urgent red */
+#break-popup {
+  background: #fff8e6;              /* warm light yellow-beige (rest energy) */
+  border: 2px solid #e6d3a1;        /* soft brown-gold outline */
+}
+
+#break-popup .title {
+  color: #8a6b2a;                   /* warm "rest" tone */
+}
+
+#break-popup .time-display {
+  color: #b0522e;                   /* soft terracotta / clay */
+}
+
+#break-popup .hint {
+  color: #9b7a43;
+}
+
+/* =========================
+   BUTTON
+   ========================= */
+
 .control-btn {
-    /* ... */
+  margin-top: 16px;
+
+  background: #3a5f2a; /* deep green ("grow your tree" vibe) */
+  color: #fff;
+
+  border: none;
+  border-radius: 14px;
+
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 10px 20px;
+
+  min-width: 120px;
+  text-align: center;
+
+  cursor: pointer;
+  box-shadow:
+    0 3px 6px rgba(0, 0, 0, 0.15),
+    0 1px 2px rgba(0, 0, 0, 0.08);
+
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
-/* OPTIONAL: .bear image style if you add the bear */
+/* hover/active states feel "pressable", like a real button */
+.control-btn:hover {
+  background: #2f4d21;
+  box-shadow:
+    0 4px 10px rgba(0, 0, 0, 0.18),
+    0 1px 2px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.control-btn:active {
+  transform: translateY(0px) scale(0.98);
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.2),
+    0 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+/* =========================
+   LITTLE EXTRAS
+   ========================= */
+
+/* if you ever add an image like a plant/mascot */
 .bear {
-    /* width, height, maybe margin-top */
+  width: 70px;
+  height: 70px;
+  margin-top: 10px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,0.15));
+  image-rendering: -webkit-optimize-contrast;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.6);
+  padding: 4px;
 }

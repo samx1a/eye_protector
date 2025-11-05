@@ -2,13 +2,9 @@
 // STATE
 // =========================
 
-// TODO: variable to track current mode: "work" or "break"
-let mode = "work"; // can be work or braek
+let mode = "work"; // can be work or break
 let timeLeft; 
 let timerId; 
-
-// TODO: variable to track if the timer is currently running or not
-// let isRunning = ...
 let isRunning = false; 
 
 
@@ -96,30 +92,17 @@ function hideBreakPopup() {
 // SWITCH MODES
 // =========================
 
-// This runs when a phase finishes.
-// If we just finished work:
-// - switch mode to "break"
-// - set timeLeft to BREAK_DURATION
-// - showBreakPopup()
-// - restart the timer loop
-//
-// If we just finished break:
-// - switch mode to "work"
-// - set timeLeft to WORK_DURATION
-// - hideBreakPopup()
-// - restart the timer loop
+// Mode switching is now handled by background.js
+// This function is kept for compatibility but background handles it
 function switchMode() {
-    if (mode === "work") {
-        mode = "break";
-        timeLeft = BREAK_DURATION; 
-        showBreakPopup();
-        // how to restart timer 
-    } else {
-        mode = "work"; 
-        timeLeft = WORK_DURATION; 
-        hideBreakPopup();
-    }
-    startTimerLoop();
+    // Background service worker handles mode switching
+    // Just refresh state from background
+    getStateFromBackground().then(state => {
+        mode = state.mode;
+        timeLeft = state.timeLeft;
+        updateUIForMode();
+        startTimerLoop();
+    });
 }
 
 
@@ -128,32 +111,60 @@ function switchMode() {
 // START THE INTERVAL LOOP
 // =========================
 
-// This function should:
-// 1. clear any existing interval (clearInterval(...)) check 
-// 2. immediately update the screen so UI matches current timeLeft check 
-// 3. start a new setInterval that runs every 1000ms (1s):
-//    - subtract 1 from timeLeft
-//    - update the screen
-//    - if timeLeft <= 0:
-//        - stop the interval
-//        - call switchMode()
+// This function syncs with background timer and updates UI
+// The actual timer runs in background.js, this just displays it
 function startTimerLoop() {
-    // TODO:
-    // clear old interval
     clearInterval(timerId); 
     updateCountdownDisplay();
 
-    timerId = setInterval(() => {
-        timeLeft -= 1;
-        updateCountdownDisplay();
-        
-        if (timeLeft <= 0) {
-            clearInterval(timerId); 
-            switchMode(); 
+    // Sync with background every second
+    timerId = setInterval(async () => {
+        const state = await getStateFromBackground();
+        if (state.isRunning) {
+            mode = state.mode;
+            timeLeft = state.timeLeft;
+            updateCountdownDisplay();
+            updateUIForMode();
+            
+            // If timer finished, background will handle mode switch
+            if (timeLeft <= 0) {
+                clearInterval(timerId);
+                // Wait a moment for background to update, then refresh
+                setTimeout(async () => {
+                    const newState = await getStateFromBackground();
+                    if (newState.isRunning) {
+                        mode = newState.mode;
+                        timeLeft = newState.timeLeft;
+                        updateUIForMode();
+                        startTimerLoop();
+                    }
+                }, 100);
+            }
+        } else {
+            clearInterval(timerId);
         }
-
-
     }, 1000); 
+}
+
+// Get current state from background service worker
+async function getStateFromBackground() {
+    return new Promise((resolve) => {
+        chrome.runtime.sendMessage({ action: 'getState' }, (response) => {
+            if (chrome.runtime.lastError) {
+                resolve({ isRunning: false, mode: 'work', timeLeft: WORK_DURATION });
+            } else {
+                resolve(response || { isRunning: false, mode: 'work', timeLeft: WORK_DURATION });
+            }
+        });
+    });
+}
+
+function updateUIForMode() {
+    if (mode === 'break') {
+        showBreakPopup();
+    } else {
+        hideBreakPopup();
+    }
 }
 
 
@@ -161,36 +172,34 @@ function startTimerLoop() {
 // START / STOP BUTTON
 // =========================
 
-// This function runs when the user clicks the Start/Stop button.
-//
-// If we are currently NOT running:
-// - mark isRunning = true
-// - change button textContent to "Stop"
-// - initialize mode to "work"
-// - set timeLeft = WORK_DURATION
-// - make sure break popup is hidden (because we're working now)
-// - startTimerLoop()
-//
-// If we ARE running:
-// - mark isRunning = false
-// - change button textContent to "Start"
-// - clearInterval(timerId) so it stops counting down
-function toggleStartStop() {
+async function toggleStartStop() {
     let btn = document.getElementById("toggle-btn"); 
 
     if (!isRunning) {
-        isRunning = true; 
-        btn.textContent = "stop"; 
-
-        mode = "work";
-        timeLeft = WORK_DURATION; 
-        hideBreakPopup();
-
-        startTimerLoop();
+        // Start timer in background
+        chrome.runtime.sendMessage({ action: 'start' }, (response) => {
+            if (response && response.success) {
+                isRunning = true;
+                btn.textContent = "Stop";
+                mode = "work";
+                timeLeft = WORK_DURATION;
+                hideBreakPopup();
+                startTimerLoop();
+            }
+        });
     } else {
-        isRunning = false; 
-        btn.textContent = "start"; 
-        clearInterval(timerId); 
+        // Stop timer in background
+        chrome.runtime.sendMessage({ action: 'stop' }, (response) => {
+            if (response && response.success) {
+                isRunning = false;
+                btn.textContent = "Start";
+                clearInterval(timerId);
+                mode = "work";
+                timeLeft = WORK_DURATION;
+                hideBreakPopup();
+                updateCountdownDisplay();
+            }
+        });
     }
 }
 
@@ -199,28 +208,32 @@ function toggleStartStop() {
 // INITIALIZE WHEN PAGE LOADS
 // =========================
 
-// This waits until the HTML is ready, then:
-// - grabs the Start/Stop button and attaches the click handler
-// - sets isRunning = false
-// - sets the button text to "Start"
-// - sets mode = "work"
-// - sets timeLeft = WORK_DURATION initially
-// - makes sure break popup is hidden
-// - calls updateCountdownDisplay() once so UI shows correct starting time
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async () => {
     const btn = document.getElementById("toggle-btn"); 
-
     btn.addEventListener("click", toggleStartStop); 
 
-    isRunning = false; 
-
-    btn.textContent = "start"; 
-
-    mode = "work"; 
-
-    timeLeft = WORK_DURATION; 
-
-    hideBreakPopup(); 
-
-    updateCountdownDisplay(); 
+    // Load state from background service worker
+    const state = await getStateFromBackground();
+    
+    isRunning = state.isRunning || false;
+    mode = state.mode || "work";
+    timeLeft = state.timeLeft || WORK_DURATION;
+    
+    // Update button
+    btn.textContent = isRunning ? "Stop" : "Start";
+    
+    // Update UI based on mode
+    if (mode === "break") {
+        showBreakPopup();
+    } else {
+        hideBreakPopup();
+    }
+    
+    // Update display
+    updateCountdownDisplay();
+    
+    // If timer is running, start the sync loop
+    if (isRunning) {
+        startTimerLoop();
+    }
 });

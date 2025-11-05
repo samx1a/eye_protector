@@ -1,10 +1,17 @@
 {
   "name": "Eye Protector",
   "description": "Reminds you to rest your eyes: 20 minutes work / 20 seconds break.",
-  "version": "1.0",
+  "version": "1.0.0",
   "manifest_version": 3,
   "action": {
     "default_popup": "index.html",
-    "default_icon": "eye_protect.png"
-  }
+    "default_title": "Eye Protector"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "storage",
+    "notifications"
+  ]
 }
