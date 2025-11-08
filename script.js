@@ -3,9 +3,11 @@
 // =========================
 
 let mode = "work"; // can be work or break
-let timeLeft; 
-let timerId; 
-let isRunning = false; 
+let timeLeft;
+let timerId;
+let isRunning = false;
+let startTime = null;
+let duration = WORK_DURATION;
 
 
 // =========================
@@ -41,16 +43,27 @@ function formatTime(totalSeconds) {
 // - If mode is "break": update the element with id="break-timer"
 //   with just the raw number of seconds left (timeLeft)
 function updateCountdownDisplay() {
+    const remaining = calculateTimeLeft();
     if (mode === "work") {
-        // get curr time, format time, display that time
-        const workEl = document.getElementById("work-timer"); 
-        const formatted = formatTime(timeLeft);
-        workEl.textContent = formatted; 
+        const workEl = document.getElementById("work-timer");
+        const formatted = formatTime(remaining);
+        workEl.textContent = formatted;
     } else {
-        // mode is equal to break
-        const breakEl = document.getElementById("break-timer"); 
-        breakEl.textContent = timeLeft;
+        const breakEl = document.getElementById("break-timer");
+        breakEl.textContent = remaining;
     }
+}
+
+function calculateTimeLeft() {
+    const baseDuration = duration ?? (mode === "work" ? WORK_DURATION : BREAK_DURATION);
+    if (isRunning && startTime) {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        return Math.max(0, baseDuration - elapsed);
+    }
+    if (typeof timeLeft === "number") {
+        return Math.max(0, timeLeft);
+    }
+    return baseDuration;
 }
 
 
@@ -114,36 +127,21 @@ function switchMode() {
 // This function syncs with background timer and updates UI
 // The actual timer runs in background.js, this just displays it
 function startTimerLoop() {
-    clearInterval(timerId); 
+    clearInterval(timerId);
     updateCountdownDisplay();
 
-    // Sync with background every second
     timerId = setInterval(async () => {
+        updateCountdownDisplay();
+
         const state = await getStateFromBackground();
-        if (state.isRunning) {
-            mode = state.mode;
-            timeLeft = state.timeLeft;
-            updateCountdownDisplay();
-            updateUIForMode();
-            
-            // If timer finished, background will handle mode switch
-            if (timeLeft <= 0) {
-                clearInterval(timerId);
-                // Wait a moment for background to update, then refresh
-                setTimeout(async () => {
-                    const newState = await getStateFromBackground();
-                    if (newState.isRunning) {
-                        mode = newState.mode;
-                        timeLeft = newState.timeLeft;
-                        updateUIForMode();
-                        startTimerLoop();
-                    }
-                }, 100);
-            }
-        } else {
+        applyState(state);
+        updateUIForMode();
+        updateCountdownDisplay();
+
+        if (!isRunning) {
             clearInterval(timerId);
         }
-    }, 1000); 
+    }, 1000);
 }
 
 // Get current state from background service worker
@@ -167,6 +165,18 @@ function updateUIForMode() {
     }
 }
 
+function applyState(state) {
+    if (!state) {
+        return;
+    }
+
+    isRunning = state.isRunning || false;
+    mode = state.mode || 'work';
+    timeLeft = state.timeLeft ?? (mode === 'work' ? WORK_DURATION : BREAK_DURATION);
+    startTime = state.startTime || null;
+    duration = state.duration ?? (mode === 'work' ? WORK_DURATION : BREAK_DURATION);
+}
+
 
 // =========================
 // START / STOP BUTTON
@@ -183,6 +193,8 @@ async function toggleStartStop() {
                 btn.textContent = "Stop";
                 mode = "work";
                 timeLeft = WORK_DURATION;
+                startTime = Date.now();
+                duration = WORK_DURATION;
                 hideBreakPopup();
                 startTimerLoop();
                 window.close();
@@ -197,6 +209,8 @@ async function toggleStartStop() {
                 clearInterval(timerId);
                 mode = "work";
                 timeLeft = WORK_DURATION;
+                startTime = null;
+                duration = WORK_DURATION;
                 hideBreakPopup();
                 updateCountdownDisplay();
             }
@@ -216,9 +230,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     // Load state from background service worker
     const state = await getStateFromBackground();
     
-    isRunning = state.isRunning || false;
-    mode = state.mode || "work";
-    timeLeft = state.timeLeft || WORK_DURATION;
+    applyState(state);
     
     // Update button
     btn.textContent = isRunning ? "Stop" : "Start";
