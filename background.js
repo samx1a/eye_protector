@@ -13,12 +13,13 @@ chrome.runtime.onStartup.addListener(loadState);
 chrome.runtime.onInstalled.addListener(loadState);
 
 async function loadState() {
-  const result = await chrome.storage.local.get(['isRunning', 'mode', 'timeLeft', 'startTime']);
+  const result = await chrome.storage.local.get(['isRunning', 'mode', 'timeLeft', 'startTime', 'duration']);
   
   if (result.isRunning && result.startTime) {
     // Calculate how much time has passed since timer started
     const elapsed = Math.floor((Date.now() - result.startTime) / 1000);
-    const remaining = Math.max(0, result.timeLeft - elapsed);
+    const storedDuration = result.duration ?? (result.mode === 'work' ? WORK_DURATION : BREAK_DURATION);
+    const remaining = Math.max(0, storedDuration - elapsed);
     
     if (remaining > 0) {
       // Resume timer with remaining time
@@ -36,33 +37,36 @@ function startBackgroundTimer(mode, initialTime) {
     clearInterval(timerInterval);
   }
   
-  let timeLeft = initialTime;
+  const duration = initialTime;
   const startTime = Date.now();
   
   // Save state
   chrome.storage.local.set({
     isRunning: true,
     mode: mode,
-    timeLeft: timeLeft,
-    startTime: startTime
+    timeLeft: duration,
+    startTime: startTime,
+    duration: duration
   });
   
   // Update badge immediately
-  updateBadge(mode, timeLeft);
+  updateBadge(mode, duration);
   
   // Start counting down
   timerInterval = setInterval(() => {
-    timeLeft--;
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const timeLeft = Math.max(0, duration - elapsed);
     
     // Update badge every second
     updateBadge(mode, timeLeft);
     
     // Save current state
     chrome.storage.local.set({
-      isRunning: true,
+      isRunning: timeLeft > 0,
       mode: mode,
       timeLeft: timeLeft,
-      startTime: startTime
+      startTime: startTime,
+      duration: duration
     });
     
     if (timeLeft <= 0) {
@@ -97,6 +101,7 @@ function switchModeInBackground(duration) {
         message: 'Time for a break! Look away from the screen.'
       }).catch(() => {}); // Ignore if notifications fail
     });
+    chrome.action.openPopup().catch(() => {});
   }
   
   // Start timer for new mode
@@ -132,7 +137,8 @@ function stopTimer() {
     isRunning: false,
     mode: 'work',
     timeLeft: WORK_DURATION,
-    startTime: null
+    startTime: null,
+    duration: null
   });
   
   chrome.action.setBadgeText({ text: '' });
@@ -147,11 +153,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     stopTimer();
     sendResponse({ success: true });
   } else if (request.action === 'getState') {
-    chrome.storage.local.get(['isRunning', 'mode', 'timeLeft', 'startTime']).then(result => {
+    chrome.storage.local.get(['isRunning', 'mode', 'timeLeft', 'startTime', 'duration']).then(result => {
       if (result.isRunning && result.startTime) {
         // Calculate remaining time
         const elapsed = Math.floor((Date.now() - result.startTime) / 1000);
-        result.timeLeft = Math.max(0, result.timeLeft - elapsed);
+        const storedDuration = result.duration ?? (result.mode === 'work' ? WORK_DURATION : BREAK_DURATION);
+        result.timeLeft = Math.max(0, storedDuration - elapsed);
+        if (result.timeLeft <= 0) {
+          result.isRunning = false;
+        }
       }
       sendResponse(result);
     });

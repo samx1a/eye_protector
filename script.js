@@ -185,6 +185,7 @@ async function toggleStartStop() {
                 timeLeft = WORK_DURATION;
                 hideBreakPopup();
                 startTimerLoop();
+                window.close();
             }
         });
     } else {
